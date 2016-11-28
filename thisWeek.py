@@ -21,20 +21,25 @@ def next_weekday(d, weekday):
         days_ahead += 7
     return d + timedelta(days_ahead)
 
-if today.weekday() == 2:
-	#Fix this and find out why it doesnt work
-	Wednesday = next_weekday(today, 2).strftime("%d-%m-%Y")
-else:
-	Wednesday = next_weekday(today, 2).strftime("%d-%m-%Y")
+def tomorrow():
+    tomorrow_day = date.today() + timedelta(days=1)
+    return tomorrow_day
 
-startDate = lastThursday(today).strftime("%d-%m-%Y")
+def next_week():
+    next_week_day = date.today() + timedelta(days=8)
+    return next_week_day
+
+startDate = tomorrow().strftime("%d-%m-%Y")
+endDate = next_week().strftime("%d-%m-%Y")
 currentDate = time.strftime("%Y-%m-%d")
+
+daysCovered = (next_week()-tomorrow()).days
 
 headers = {'user-agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:13.0) Gecko/20100101 Firefox/13.0.1'}
 
 payload1 = {
-	'date_from': Wednesday,
-	'date_to': Wednesday,
+	'date_from': startDate,
+	'date_to': endDate,
 	'league%5B%5D': '',
 	'orderby': 'date',
 	'order_dir': 'asc',
@@ -46,12 +51,11 @@ payload1 = {
 
 r = requests.get('http://loughboroughsport.com/athletic-union/wp-admin/admin-ajax.php', headers=headers, params=payload1)
 results = (r.text)
-
 fixtureNumber = json.loads(results)['total']
 
 payload2 = {
-	'date_from': Wednesday,
-	'date_to': Wednesday,
+	'date_from': startDate,
+	'date_to': endDate,
 	'league%5B%5D': '',
 	'orderby': 'start_time',
 	'order_dir': 'asc',
@@ -62,12 +66,12 @@ payload2 = {
 
 r = requests.get('http://loughboroughsport.com/athletic-union/wp-admin/admin-ajax.php', headers=headers, params=payload2)
 results = (r.text)
-
+print results
 
 #print json.loads(results)['fixtures'][0]['team']
 
 # Open a file
-csvFile = open("fixturesWed.txt", "wb")
+csvFile = open("fixturesWeek.txt", "wb")
 reported = 0
 missing = 0
 
@@ -160,13 +164,13 @@ for i in json.loads(results)['fixtures']:
 
 
 csvFile.close()
-tempfixtures = open("fixturesWed.txt", "r+")
+tempfixtures = open("fixturesWeek.txt", "r+")
 lines = sorted(tempfixtures.readlines())
 tempfixtures.seek(0)
 tempfixtures.truncate()
-tempfixtures.write('Wednesday Fixtures ' + Wednesday + '\n');
+tempfixtures.write('Fixtures This Week - ' + startDate + ' to ' + endDate + '\n');
 for g in lines:
-	print(g)
+	#print(g)
 	tempfixtures.write(g);
 tempfixtures.close()
 
